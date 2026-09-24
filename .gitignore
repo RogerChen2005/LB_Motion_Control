@@ -1,0 +1,30 @@
+# Generated build products and CMake/Ninja state
+/build/
+**/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+.ninja_deps
+.ninja_log
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.obj
+*.d
+*.su
+*.exe
+
+# Local migration backups and CubeMX workspace metadata
+/.lb-backups/
+/.mxproject
+
+# Editor and IDE state
+/.vscode/
+/.idea/
+/.settings/
+/.metadata/
+*.uvoptx
+*.uvguix.*
+*.user
