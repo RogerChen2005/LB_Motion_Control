@@ -12,9 +12,9 @@ void Board_EnableGpioClock(GPIO_TypeDef *port);
 
 /* User-wired GPIO: port and pin can be changed as a pair. */
 #define LB_DIR_PORT GPIOE
-#define LB_DIR_PIN GPIO_PIN_6
+#define LB_DIR_PIN GPIO_PIN_1
 #define LB_ENABLE_PORT GPIOE
-#define LB_ENABLE_PIN GPIO_PIN_1
+#define LB_ENABLE_PIN GPIO_PIN_6
 
 /* P1 right column: PA15, PA13, PA11, PC9, PC7, PG8, PG6, PG4, PG2.
  * Rows use the first five contacts; the user's keypad column order runs

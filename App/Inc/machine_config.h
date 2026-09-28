@@ -8,7 +8,7 @@
 #define PULSES_PER_REV 25600U /* Driver table: SW5-SW8 all OFF. */
 #define MAX_SPEED_MM_MIN 1200U
 #define DEFAULT_SPEED_MM_MIN 60U
-#define JOG_SPEED_MM_MIN 1200U
+#define JOG_SPEED_MM_MIN 800U
 #define ACCEL_MILLI_SPEED_PER_MS 480U /* 480 (mm/min)/s */
 #define ENTER_STARTS_RUN 0
 #endif
