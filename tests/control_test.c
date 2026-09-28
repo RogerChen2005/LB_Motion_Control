@@ -15,7 +15,7 @@ int main(void)
     assert(c.set_speed==240 && !c.run && !c.editing);
     key(&c,K_F1); ticks(&c,100);
     assert(c.run && c.speed_milli==240000);
-    assert(Control_FrequencyMilliHz(&c)==1600000); /* 240mm/min, 4mm, 1600p/rev */
+    assert(Control_FrequencyMilliHz(&c)==25600000); /* 240mm/min, 4mm, 25600p/rev */
     key(&c,K_LEFT); assert(c.reverse && !c.output_reverse); /* Request while running. */
     ticks(&c,50); assert(c.run && !c.speed_milli && !c.output_reverse);
     ticks(&c,1); assert(c.output_reverse && !c.speed_milli); /* DIR changes at zero. */
