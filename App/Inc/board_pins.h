@@ -29,13 +29,13 @@ void Board_EnableGpioClock(GPIO_TypeDef *port);
 #define LB_KEY_ROW4_PORT GPIOC
 #define LB_KEY_ROW4_PIN GPIO_PIN_7
 #define LB_KEY_COL0_PORT GPIOG
-#define LB_KEY_COL0_PIN GPIO_PIN_8
+#define LB_KEY_COL0_PIN GPIO_PIN_2
 #define LB_KEY_COL1_PORT GPIOG
-#define LB_KEY_COL1_PIN GPIO_PIN_6
+#define LB_KEY_COL1_PIN GPIO_PIN_4
 #define LB_KEY_COL2_PORT GPIOG
-#define LB_KEY_COL2_PIN GPIO_PIN_4
+#define LB_KEY_COL2_PIN GPIO_PIN_6
 #define LB_KEY_COL3_PORT GPIOG
-#define LB_KEY_COL3_PIN GPIO_PIN_2
+#define LB_KEY_COL3_PIN GPIO_PIN_8
 
 /* LCD backlight and resistive touch use ordinary GPIO / software SPI. */
 #define LB_LCD_BL_PORT GPIOB
