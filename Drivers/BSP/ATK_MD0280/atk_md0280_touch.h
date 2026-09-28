@@ -22,6 +22,7 @@
 #define __ATK_MD0280_TOUCH_H
 
 #include "./BSP/ATK_MD0280/atk_md0280.h"
+#include "board_pins.h"
 
 #if (ATK_MD0280_USING_TOUCH != 0)
 
@@ -30,9 +31,9 @@
 #define ATK_MD0280_TOUCH_READ_RANGE             50  /* 定义单次获取坐标读取的两次值之间误差的最大值 */
 
 /* 引脚定义 */
-#define ATK_MD0280_TOUCH_PEN_GPIO_PORT          GPIOF
-#define ATK_MD0280_TOUCH_PEN_GPIO_PIN           GPIO_PIN_10
-#define ATK_MD0280_TOUCH_PEN_GPIO_CLK_ENABLE()  do{ __HAL_RCC_GPIOF_CLK_ENABLE(); }while(0)
+#define ATK_MD0280_TOUCH_PEN_GPIO_PORT          LB_TOUCH_PEN_PORT
+#define ATK_MD0280_TOUCH_PEN_GPIO_PIN           LB_TOUCH_PEN_PIN
+#define ATK_MD0280_TOUCH_PEN_GPIO_CLK_ENABLE()  do{ Board_EnableGpioClock(ATK_MD0280_TOUCH_PEN_GPIO_PORT); }while(0)
 
 /* IO操作 */
 #define ATK_MD0280_TOUCH_READ_PEN()              HAL_GPIO_ReadPin(ATK_MD0280_TOUCH_PEN_GPIO_PORT, ATK_MD0280_TOUCH_PEN_GPIO_PIN)

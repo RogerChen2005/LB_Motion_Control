@@ -22,6 +22,7 @@
 #define __ATK_MD0280_H
 
 #include "./SYSTEM/sys/sys.h"
+#include "board_pins.h"
 
 /* 定义ATK-MD0280模块LCD尺寸 */
 #define ATK_MD0280_LCD_WIDTH            240
@@ -53,9 +54,9 @@
 #endif
 
 /* 引脚定义 */
-#define ATK_MD0280_BL_GPIO_PORT         GPIOB
-#define ATK_MD0280_BL_GPIO_PIN          GPIO_PIN_0
-#define ATK_MD0280_BL_GPIO_CLK_ENABLE() do{ __HAL_RCC_GPIOB_CLK_ENABLE(); }while(0)
+#define ATK_MD0280_BL_GPIO_PORT         LB_LCD_BL_PORT
+#define ATK_MD0280_BL_GPIO_PIN          LB_LCD_BL_PIN
+#define ATK_MD0280_BL_GPIO_CLK_ENABLE() do{ Board_EnableGpioClock(ATK_MD0280_BL_GPIO_PORT); }while(0)
 
 /* IO操作 */
 #define ATK_MD0280_BL(x)                do{ x ?                                                                                 \

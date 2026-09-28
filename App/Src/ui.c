@@ -13,8 +13,10 @@
 #define CYAN 0x36BB
 #define GREEN 0x252D
 #define RED 0xC986
+#define UI_WIDTH 320
+#define UI_HEIGHT 240
 static void text(int x,int y,const char *s,atk_md0280_lcd_font_t font,uint16_t color)
-{ atk_md0280_show_string(x,y,240-x,320-y,(char *)s,font,color); }
+{ atk_md0280_show_string(x,y,UI_WIDTH-x,UI_HEIGHT-y,(char *)s,font,color); }
 static void box(int x,int y,int w,int h,uint16_t color)
 { atk_md0280_fill(x,y,x+w-1,y+h-1,color); }
 static void button(int x,int y,int w,int h,const char *label,uint16_t color)
@@ -33,43 +35,47 @@ void UI_Draw(const Control *s,bool force)
     bool full=force||!initialized||editing!=s->editing;
     if (!full && old_input==s->input && old_target==s->set_speed && old_speed==s->speed_milli && old_state==state) return;
     if (full) {
-        atk_md0280_clear(BG); box(0,0,240,26,PANEL);
-        text(10,5,s->editing ? "SET SPEED" : "LINEAR MOTION",ATK_MD0280_LCD_FONT_16,WHITE);
+        atk_md0280_clear(BG);
+        if (s->editing) {
+            box(0,0,UI_WIDTH,26,PANEL);
+            text(10,5,"SET SPEED",ATK_MD0280_LCD_FONT_16,WHITE);
+        }
     }
     char b[40];
     if (s->editing) {
-        box(8,32,224,48,PANEL);
+        box(8,32,116,84,PANEL);
+        text(16,40,"mm/min",ATK_MD0280_LCD_FONT_12,MUTED);
         snprintf(b,sizeof(b),"%lu",(unsigned long)s->input);
-        text(16,36,b,ATK_MD0280_LCD_FONT_24,s->input_error ? RED : CYAN);
+        text(16,62,b,ATK_MD0280_LCD_FONT_24,s->input_error ? RED : CYAN);
         snprintf(b,sizeof(b),"0-%u mm/min",MAX_SPEED_MM_MIN);
-        text(16,64,b,ATK_MD0280_LCD_FONT_12,s->input_error ? 0xFBE0 : MUTED);
+        text(16,96,b,ATK_MD0280_LCD_FONT_12,s->input_error ? 0xFBE0 : MUTED);
         if (full) {
             const char *labels[]={"1","2","3","4","5","6","7","8","9","DEL","0","CLR"};
-            for (int i=0;i<12;i++) button(8+(i%3)*76,88+(i/3)*44,72,38,labels[i],PANEL);
-            button(8,270,108,42,"CANCEL",PANEL); button(124,270,108,42,"SAVE",GREEN);
+            for (int i=0;i<12;i++) button(132+(i%3)*60,32+(i/3)*50,56,42,labels[i],PANEL);
+            button(8,132,116,42,"CANCEL",PANEL); button(8,182,116,42,"SAVE",GREEN);
         }
     } else {
         if (full || old_target!=s->set_speed) {
-            box(8,32,224,54,PANEL); text(16,36,"SET SPEED / mm/min",ATK_MD0280_LCD_FONT_12,MUTED);
+            box(8,8,304,66,PANEL); text(16,14,"SET SPEED / mm/min",ATK_MD0280_LCD_FONT_12,MUTED);
             snprintf(b,sizeof(b),"%lu",(unsigned long)s->set_speed);
-            text(16,52,b,ATK_MD0280_LCD_FONT_32,CYAN); text(190,62,"EDIT",ATK_MD0280_LCD_FONT_12,MUTED);
+            text(16,31,b,ATK_MD0280_LCD_FONT_32,CYAN); text(270,46,"EDIT",ATK_MD0280_LCD_FONT_12,MUTED);
         }
-        box(8,94,224,18,BG);
+        box(8,79,304,18,BG);
         snprintf(b,sizeof(b),"CMD %lu.%lu mm/min",(unsigned long)(s->speed_milli/1000),(unsigned long)(s->speed_milli%1000/100));
-        text(12,94,b,ATK_MD0280_LCD_FONT_16,WHITE);
+        text(12,79,b,ATK_MD0280_LCD_FONT_16,WHITE);
         if (full || old_state!=state) {
-            box(8,116,224,18,BG);
+            box(8,99,304,18,BG);
             const char *status=!s->ready ? "INHIBITED" : s->locked ? "RELEASE ALL KEYS" : s->jog ? "JOG / HOLD" : s->run ? "RUNNING" : s->speed_milli ? "DECELERATING" : "STOPPED";
-            text(12,116,status,ATK_MD0280_LCD_FONT_16,MUTED);
-            button(8,142,108,42,s->run ? "PAUSE" : "START",GREEN); button(124,142,108,42,"STOP",RED);
-            button(8,192,108,36,"REVERSE",s->reverse ? 0x2B16 : PANEL);
-            button(124,192,108,36,"FORWARD",s->reverse ? PANEL : 0x2B16);
+            text(12,99,status,ATK_MD0280_LCD_FONT_16,MUTED);
+            button(8,122,70,40,s->run ? "PAUSE" : "START",GREEN);
+            button(86,122,70,40,"STOP",RED);
+            button(164,122,70,40,"REVERSE",s->reverse ? 0x2B16 : PANEL);
+            button(242,122,70,40,"FORWARD",s->reverse ? PANEL : 0x2B16);
         }
         if (full) {
-            button(8,236,108,42,"- JOG",0x2250); button(124,236,108,42,"+ JOG",0x2250);
-            snprintf(b,sizeof(b),"LEAD 4mm / %u P-REV",PULSES_PER_REV);
-            text(10,288,b,ATK_MD0280_LCD_FONT_12,MUTED);
-            text(10,304,"F1 RUN  ENT SAVE  ESC STOP",ATK_MD0280_LCD_FONT_12,MUTED);
+            button(8,170,148,38,"- JOG",0x2250); button(164,170,148,38,"+ JOG",0x2250);
+            const char *credit="Ver2.0 by ZJU Atomic Lab";
+            text((UI_WIDTH-(int)strlen(credit)*6)/2,219,credit,ATK_MD0280_LCD_FONT_12,MUTED);
         }
     }
     initialized=true; editing=s->editing; old_input=s->input; old_target=s->set_speed;
@@ -77,19 +83,23 @@ void UI_Draw(const Control *s,bool force)
 }
 uint8_t UI_Hit(const Control *s,uint16_t x,uint16_t y)
 {
-    if (x>=240 || y>=320) return K_NONE;
+    if (x>=UI_WIDTH || y>=UI_HEIGHT) return K_NONE;
     if (s->editing) {
         static const uint8_t keys[]={K_1,K_2,K_3,K_4,K_5,K_6,K_7,K_8,K_9,K_STAR,K_0,K_HASH};
-        if (x>=8 && x<232 && y>=88 && y<258) {
-            unsigned col=(x-8)/76,row=(y-88)/44;
-            if (col<3 && row<4 && (x-8)%76<72 && (y-88)%44<38) return keys[row*3+col];
+        if (x>=132 && x<308 && y>=32 && y<224) {
+            unsigned col=(x-132)/60,row=(y-32)/50;
+            if (col<3 && row<4 && (x-132)%60<56 && (y-32)%50<42) return keys[row*3+col];
         }
-        if (y>=270 && y<312) { if (x>=8 && x<116) return K_ESC; if (x>=124 && x<232) return K_ENTER; }
+        if (x>=8 && x<124) { if (y>=132 && y<174) return K_ESC; if (y>=182 && y<224) return K_ENTER; }
     } else {
-        if (x>=8 && x<232 && y>=32 && y<86) return K_HASH;
-        if (y>=142 && y<184) { if (x>=8 && x<116) return K_F1; if (x>=124 && x<232) return K_ESC; }
-        if (y>=192 && y<228) { if (x>=8 && x<116) return K_LEFT; if (x>=124 && x<232) return K_RIGHT; }
-        if (y>=236 && y<278) { if (x>=8 && x<116) return K_DOWN; if (x>=124 && x<232) return K_UP; }
+        if (x>=8 && x<312 && y>=8 && y<74) return K_HASH;
+        if (y>=122 && y<162) {
+            if (x>=8 && x<78) return K_F1;
+            if (x>=86 && x<156) return K_ESC;
+            if (x>=164 && x<234) return K_LEFT;
+            if (x>=242 && x<312) return K_RIGHT;
+        }
+        if (y>=170 && y<208) { if (x>=8 && x<156) return K_DOWN; if (x>=164 && x<312) return K_UP; }
     }
     return K_NONE;
 }

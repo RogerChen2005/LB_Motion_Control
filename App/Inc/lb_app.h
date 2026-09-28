@@ -8,5 +8,4 @@ void LB_Init(void);
 void LB_Poll(void);
 void LB_Tick1ms(void);
 void LB_MotorOff(void);
-extern volatile uint16_t g_lcd_id;
 #endif

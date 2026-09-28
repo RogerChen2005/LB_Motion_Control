@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file         stm32f1xx_hal_msp.c
-  * @brief        Initializes the MCU support package and keeps SWD available for debugging.
+  * @brief        Initializes the MCU support package and releases SWD pins for the keypad.
   *               and de-Initialization codes.
   ******************************************************************************
   * @attention
@@ -71,9 +71,9 @@ void HAL_MspInit(void)
 
   /* System interrupt init*/
 
-  /** DISABLE: JTAG-DP Disabled; SW-DP Enabled
+  /** DISABLE: JTAG-DP and SW-DP disabled to use PA13 as keypad GPIO.
   */
-  __HAL_AFIO_REMAP_SWJ_NOJTAG();
+  __HAL_AFIO_REMAP_SWJ_DISABLE();
 
   /* USER CODE BEGIN MspInit 1 */
 

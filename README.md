@@ -15,7 +15,7 @@ HAL + 正点原子精英板 + ATK-MD0280 官方 BSP + 5 行 4 列矩阵键盘 + 
 
 ## 机械参数：先核对再通电运行
 
-参数集中在 `Core/Inc/machine_config.h`：
+参数集中在 `App/Inc/machine_config.h`：
 
 | 参数 | 当前值 |
 |---|---|
@@ -36,20 +36,25 @@ HAL + 正点原子精英板 + ATK-MD0280 官方 BSP + 5 行 4 列矩阵键盘 + 
 
 | 功能 | STM32 引脚 |
 |---|---|
-| 键盘第1～5行，从上到下 | PC0、PC1、PC2、PC3、PC4 |
-| 键盘第1～4列，从左到右 | PC5、PC6、PC7、PC8 |
-| STEP/PUL 输出 | PA8 / TIM1_CH1 |
-| DIR 输出 | PA7 |
+| 键盘第1～5行 | PA15、PA13、PA11、PC9、PC7 |
+| 键盘第1～4列 | PG8、PG6、PG4、PG2 |
+| STEP/PUL 输出 | PA7 / TIM3_CH2 |
+| DIR 输出 | PE6 |
+| ENA+ 输出 | PE1，高电平使能；ENA− 接控制地 |
 | USB串口诊断 | PA9 TX、PA10 RX；115200、8N1，按开发板跳帽接 USART1 |
-| SWD | PA13、PA14，已保留 |
+| 调试接口 | JTAG/SWD 在固件启动时关闭；PA13 用作键盘输入 |
 
-键盘有9条行列线，**不按排线物理序号猜接线**：用通断档确认行列。键盘是无源触点，不给排线加5V。行开漏扫描，列3.3V上拉，非选中行释放。PC8与板载TF卡接口复用，使用本分配时移除TF卡，不启用SDIO；不要将现有其他外设连线原样带入本分配。
+键盘直插照片中 P1 右列从 PA15 到 PG2 的连续 9 针，程序按这个方向前 5 针为行、后 4 针为列扫描。**插入前须用通断档确认键盘排线也是这个行列顺序**；若顺序不同，需调整 `board_pins.h` 中的映射或使用转接线。键盘是无源触点，不给排线加5V。行开漏扫描，列3.3V上拉，非选中行释放。此排针的 PG6/PG8、PC9、PA11、PA15 与板载无线模块、TF卡、USB/CAN、ATK模块接口复用；不要连接或启用这些外设，核对相关跳帽后再直插。
+
+PA13 原是 SWDIO；固件启动时关闭整个 JTAG/SWD 并把它用作键盘列线。此后无法在运行中的固件上连接 SWD 调试器。保留 BOOT0/USART1 的恢复烧录途径；如需 SWD 调试，先断开键盘，并使用复原 SWD 配置的固件。
 
 LCD 插在原有接口，官方 BSP 使用 FSMC Bank4/PG12片选、PG0命令数据选择、PB0背光；触摸使用 PB1时钟、PB2输入、PF9输出、PF10 PEN、PF11片选，不需要占用键盘引脚。
 
-STM32输出为3.3V，而照片中DM542控制输入标为5～24V。建议使用支持3.3V输入的开集电极接口，或两路NPN驱动：PA8/PA7各经基极电阻连接NPN，发射极接控制地，集电极分别接PUL−/DIR−，PUL+/DIR+接控制5V。电阻值按实际输入电流选择，基极增加下拉以保持复位时关闭。控制5V负极与STM32 GND连接。不得将5V/24V接入GPIO。
+用户可改的 GPIO 统一写在 `App/Inc/board_pins.h`：DIR、ENA、矩阵键盘行列、背光和触摸笔的软件 SPI。每次改线同时修改对应的 `PORT` 与 `PIN`，并检查是否和板载设备冲突。TIM3_CH2、USART1 和 LCD FSMC 的 AFIO 引脚在同一文件中列出，但保持当前硬件映射。官方 BSP 仍位于 `Drivers/BSP`；其引脚宏引用此配置文件。
 
-驱动器动力电源按铭牌20～50V，线圈仍接A±/B±；ENA暂不使用。先断开机械负载或确认可用行程，再低速核对方向和实际位移。当前工程未接限位开关、编码器和硬件急停；Esc与屏幕STOP是软件减速命令。需要硬件急停和行程限位时应接独立电路后联调。
+STM32输出为3.3V，而照片中DM542控制输入标为5～24V。当前程序按 PA7 脉冲、PE6 方向、PE1 高电平使能编写，普通停止后 PE1 保持高电平以维持电机保持力；故障关断时 PE1 拉低。实际驱动器输入是否可靠识别 3.3V 须在实机核对，必要时增加与驱动器规格相符的电平/电流驱动。不得将5V/24V接入GPIO。
+
+驱动器动力电源按铭牌20～50V，线圈仍接A±/B±。先断开机械负载或确认可用行程，再低速核对方向和实际位移。当前工程未接限位开关、编码器和硬件急停；Esc与屏幕STOP是软件减速命令，停车后仍保持使能。需要硬件急停和行程限位时应接独立电路后联调。
 
 ## 工程与构建
 
@@ -60,16 +65,16 @@ cmake --build --preset Debug
 
 输出：`build/Debug/LB.elf`、`LB.hex`、`LB.bin`，BIN烧录起始地址0x08000000。采用现有CMake/Ninja/arm-none-eabi-gcc。
 
-- `control.c`：不依赖HAL的状态机、消抖、速度输入和加减速。
-- `lb_app.c`：矩阵扫描、TIM1 PWM、UART、触摸与应用调度。使用板载8MHz HSE配置72MHz。
-- `ui.c`：240×320竖屏主界面和数字键盘，使用官方字体与绘图接口。
+- `Core`：CubeMX 生成的启动、主循环、中断和 HAL 配置。
+- `App/Inc` 与 `App/Src`：自己编写的状态机、调度、键盘、脉冲、串口、屏幕和触摸模块。`board_clock.c` 使用板载8MHz HSE配置72MHz。
+- `App/Port/SYSTEM`：官方示例所需的 GCC/HAL 兼容层，微秒延时使用DWT，不改写SysTick。
+- `App/Src/ui.c`：320×240 横屏主界面和数字键盘；主界面按钮下方显示 `Ver2.0 by ZJU Atomic Lab`。
 - `Drivers/BSP/ATK_MD0280`：从指定的《精英STM32F103开发板.zip》引入官方驱动。
-- `Drivers/SYSTEM`：GCC/HAL兼容层，微秒延时使用DWT，不改写SysTick。
 - `cmake/lb_app.cmake`：应用及驱动构建清单、HAL模块开关和HEX/BIN输出。
 
-CubeMX基础工程保持标准结构。新增代码在独立文件中，main/中断调用位于USER CODE区；外设初始化由应用及官方BSP负责，因此`.ioc`不是完整的外设配置视图，不要在CubeMX重复配置这些引脚/定时器。`.ioc`已改成Serial Wire调试。CubeMX再次生成后检查`cmake/lb_app.cmake`仍被包含，新增HAL源文件仍在Drivers中，并重新编译。
+CubeMX基础工程保持标准结构。新增代码在独立文件中，main/中断调用位于USER CODE区；外设初始化由应用及官方BSP负责，因此`.ioc`不是完整的外设配置视图，不要在CubeMX重复配置这些引脚/定时器。`.ioc`不分配 PA13/PA14 调试口。CubeMX再次生成后检查 `stm32f1xx_hal_msp.c` 仍关闭 JTAG/SWD、`cmake/lb_app.cmake` 仍被包含，新增HAL源文件仍在Drivers中，并重新编译。
 
-主循环刷新屏幕，SysTick扫描键盘并每10ms调整速度，脉冲由TIM1硬件输出。触摸采样超过80ms未更新会释放触摸按键；主循环超过250ms无响应会锁定运动并减速，需复位恢复。
+主循环刷新屏幕，SysTick扫描键盘并每10ms调整速度，脉冲由TIM3硬件输出。触摸采样超过80ms未更新会释放触摸按键；主循环超过250ms无响应会锁定运动并减速，需复位恢复。
 
 ## 官方驱动改动记录
 
@@ -80,6 +85,10 @@ LCD初始化、FSMC时序、字库和触摸SPI保留官方实现。`atk_md0280_t
 2. 校准验证失败直接重新校准，修复原流程可能写到`point[5]`越界的问题。
 3. 旋转坐标的边界减1，避免生成等于屏宽/屏高的越界坐标。
 
+`atk_md0280.c` 的清屏、字符及字符串边界改用当前显示宽高，使开机竖屏触摸校准后可切换为 320×240 横屏；`display_panel.c` 在校准完成后设置 90° 显示方向。
+
+BSP 的四个引脚头文件另外引用 `App/Inc/board_pins.h`，默认接线和官方板卡一致。修改用户可配 GPIO 时只需改应用配置头文件；升级官方 BSP 时应重新检查这些引脚宏。
+
 官方校准流程保留，每次开机重新校准。若LCD初始化失败，运动保持禁用，串口报告读到的ID。
 
 ## 验证
@@ -87,7 +96,7 @@ LCD初始化、FSMC时序、字库和触摸SPI保留官方实现。`atk_md0280_t
 主机测试：
 
 ```powershell
-gcc -std=c11 -Wall -Wextra -Werror -ICore/Inc tests/control_test.c Core/Src/control.c -o build/control_test.exe
+gcc -std=c11 -Wall -Wextra -Werror -IApp/Inc tests/control_test.c App/Src/control.c -o build/control_test.exe
 .\build\control_test.exe
 ```
 

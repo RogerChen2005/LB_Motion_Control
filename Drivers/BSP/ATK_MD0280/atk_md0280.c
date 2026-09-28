@@ -731,7 +731,7 @@ void atk_md0280_fill(uint16_t xs, uint16_t ys, uint16_t xe, uint16_t ye, uint16_
  */
 void atk_md0280_clear(uint16_t color)
 {
-    atk_md0280_fill(0, 0, ATK_MD0280_LCD_WIDTH - 1, ATK_MD0280_LCD_HEIGHT - 1, color);
+    atk_md0280_fill(0, 0, atk_md0280_get_lcd_width() - 1, atk_md0280_get_lcd_height() - 1, color);
 }
 
 /**
@@ -959,7 +959,7 @@ void atk_md0280_show_char(uint16_t x, uint16_t y, char ch, atk_md0280_lcd_font_t
         }
     }
     
-    if ((x + ch_width > ATK_MD0280_LCD_WIDTH) || (y + ch_height > ATK_MD0280_LCD_HEIGHT))
+    if ((x + ch_width > atk_md0280_get_lcd_width()) || (y + ch_height > atk_md0280_get_lcd_height()))
     {
         return;
     }
@@ -1002,7 +1002,6 @@ void atk_md0280_show_string(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
     uint8_t ch_width;
     uint8_t ch_height;
     uint16_t x_raw;
-    uint16_t y_raw;
     uint16_t x_limit;
     uint16_t y_limit;
     
@@ -1047,9 +1046,8 @@ void atk_md0280_show_string(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
     }
     
     x_raw = x;
-    y_raw = y;
-    x_limit = ((x + width + 1) > ATK_MD0280_LCD_WIDTH) ? ATK_MD0280_LCD_WIDTH : (x + width + 1);
-    y_limit = ((y + height + 1) > ATK_MD0280_LCD_HEIGHT) ? ATK_MD0280_LCD_HEIGHT : (y + height + 1);
+    x_limit = ((x + width + 1) > atk_md0280_get_lcd_width()) ? atk_md0280_get_lcd_width() : (x + width + 1);
+    y_limit = ((y + height + 1) > atk_md0280_get_lcd_height()) ? atk_md0280_get_lcd_height() : (y + height + 1);
     
     while ((*str >= ' ') && (*str <= '~'))
     {
@@ -1061,8 +1059,7 @@ void atk_md0280_show_string(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
         
         if (y + ch_height >= y_limit)
         {
-            y = x_raw;
-            x = y_raw;
+            return;
         }
         
         atk_md0280_show_char(x, y, *str, font, color);
