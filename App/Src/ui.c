@@ -31,7 +31,7 @@ void UI_Draw(const Control *s,bool force)
     static unsigned old_state;
     unsigned state=(unsigned)s->reverse|((unsigned)s->run<<1)|((unsigned)s->jog<<2)|
                    ((unsigned)s->locked<<3)|((unsigned)s->input_error<<4)|((unsigned)s->ready<<5)|
-                   ((unsigned)(s->speed_milli!=0)<<6);
+                   ((unsigned)(s->speed_milli!=0)<<6)|((unsigned)s->output_reverse<<7);
     bool full=force||!initialized||editing!=s->editing;
     if (!full && old_input==s->input && old_target==s->set_speed && old_speed==s->speed_milli && old_state==state) return;
     if (full) {
@@ -61,7 +61,8 @@ void UI_Draw(const Control *s,bool force)
             text(16,31,b,ATK_MD0280_LCD_FONT_32,CYAN); text(270,46,"EDIT",ATK_MD0280_LCD_FONT_12,MUTED);
         }
         box(8,79,304,18,BG);
-        snprintf(b,sizeof(b),"CMD %lu.%lu mm/min",(unsigned long)(s->speed_milli/1000),(unsigned long)(s->speed_milli%1000/100));
+        snprintf(b,sizeof(b),"CMD %lu.%lu mm/min DIR:%s",(unsigned long)(s->speed_milli/1000),
+                 (unsigned long)(s->speed_milli%1000/100),s->output_reverse ? "REV" : "FWD");
         text(12,79,b,ATK_MD0280_LCD_FONT_16,WHITE);
         if (full || old_state!=state) {
             box(8,99,304,18,BG);

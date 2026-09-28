@@ -17,7 +17,8 @@ void Board_EnableGpioClock(GPIO_TypeDef *port);
 #define LB_ENABLE_PIN GPIO_PIN_1
 
 /* P1 right column: PA15, PA13, PA11, PC9, PC7, PG8, PG6, PG4, PG2.
- * Rows are the first five contacts, columns the last four contacts. */
+ * Rows use the first five contacts; the user's keypad column order runs
+ * from the PG2 end back toward PG8. */
 #define LB_KEY_ROW0_PORT GPIOA
 #define LB_KEY_ROW0_PIN GPIO_PIN_15
 #define LB_KEY_ROW1_PORT GPIOA

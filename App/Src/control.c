@@ -22,12 +22,17 @@ static void press(Control *c, uint8_t k)
         else if (idle(c) && !c->editing && c->ready && c->set_speed) c->run=true;
         return;
     }
-    if (!idle(c)) return; /* No direction/edit/jog changes while moving. */
     if (k==K_UP || k==K_DOWN) {
-        if (c->ready && !c->editing) { c->reverse=(k==K_DOWN); c->jog=true; }
+        if (c->ready && !c->editing) {
+            c->run=false; c->reverse=(k==K_DOWN); c->jog=true;
+        }
         return;
     }
-    if (k==K_LEFT || k==K_RIGHT) { c->reverse=(k==K_LEFT); return; }
+    if (k==K_LEFT || k==K_RIGHT) {
+        if (!c->editing) c->reverse=(k==K_LEFT);
+        return;
+    }
+    if (!idle(c)) return; /* Speed entry still requires a complete stop. */
     if (number[k]>=0) {
         if (!c->editing) { c->input=0; c->digits=0; c->editing=true; }
         if (c->digits<5) { c->input=c->input*10U+(uint32_t)number[k]; c->digits++; }

@@ -8,7 +8,7 @@
 #define PULSES_PER_REV 1600U /* DM542 SW5 OFF, SW6 OFF, SW7 ON, SW8 ON (1.8 deg motor). */
 #define MAX_SPEED_MM_MIN 1200U
 #define DEFAULT_SPEED_MM_MIN 60U
-#define JOG_SPEED_MM_MIN 480U
+#define JOG_SPEED_MM_MIN 1200U
 #define ACCEL_MILLI_SPEED_PER_MS 480U /* 480 (mm/min)/s */
 #define ENTER_STARTS_RUN 0
 #endif

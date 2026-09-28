@@ -18,7 +18,8 @@ void Motion_Init(void)
     Board_EnableGpioClock(LB_STEP_PORT);
     __HAL_RCC_TIM3_CLK_ENABLE();
     HAL_GPIO_WritePin(LB_DIR_PORT,LB_DIR_PIN,GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_RESET);
+    /* This drive's ENA input disables motion when driven high. */
+    HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_SET);
     HAL_GPIO_WritePin(LB_STEP_PORT,LB_STEP_PIN,GPIO_PIN_RESET);
     gpio.Pin=LB_DIR_PIN; gpio.Mode=GPIO_MODE_OUTPUT_PP; gpio.Speed=GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(LB_DIR_PORT,&gpio);
@@ -36,8 +37,8 @@ void Motion_Init(void)
     oc.OCFastMode=TIM_OCFAST_DISABLE;
     if (HAL_TIM_PWM_ConfigChannel(&timer,&oc,LB_STEP_CHANNEL)!=HAL_OK) Error_Handler();
     __HAL_DBGMCU_FREEZE_TIM3();
-    /* ENA+ is active high; retain holding torque while stationary. */
-    HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_SET);
+    /* Low enables the drive and retains holding torque while stationary. */
+    HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_RESET);
 }
 
 void Motion_EmergencyOff(void)
@@ -45,7 +46,7 @@ void Motion_EmergencyOff(void)
     if (timer.Instance==LB_STEP_TIMER) {
         CLEAR_BIT(TIM3->CR1,TIM_CR1_CEN);
         CLEAR_BIT(TIM3->CCER,TIM_CCER_CC2E);
-        HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(LB_ENABLE_PORT,LB_ENABLE_PIN,GPIO_PIN_SET);
     }
     running=false; previous_frequency=0;
 }
@@ -60,9 +61,10 @@ static void stop_pwm(void)
 
 void Motion_Apply(bool reverse,uint32_t frequency_millihz)
 {
+    /* Control changes output_reverse only after the pulse rate reaches zero. */
+    HAL_GPIO_WritePin(LB_DIR_PORT,LB_DIR_PIN,reverse ? GPIO_PIN_SET : GPIO_PIN_RESET);
     if (!frequency_millihz) {
         if (running) stop_pwm();
-        HAL_GPIO_WritePin(LB_DIR_PORT,LB_DIR_PIN,reverse ? GPIO_PIN_SET : GPIO_PIN_RESET);
         return;
     }
     if (frequency_millihz==previous_frequency) return;

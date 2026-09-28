@@ -16,15 +16,20 @@ int main(void)
     key(&c,K_F1); ticks(&c,100);
     assert(c.run && c.speed_milli==240000);
     assert(Control_FrequencyMilliHz(&c)==1600000); /* 240mm/min, 4mm, 1600p/rev */
-    key(&c,K_LEFT); assert(!c.reverse); /* Cannot reverse while moving. */
+    key(&c,K_LEFT); assert(c.reverse && !c.output_reverse); /* Request while running. */
+    ticks(&c,50); assert(c.run && !c.speed_milli && !c.output_reverse);
+    ticks(&c,1); assert(c.output_reverse && !c.speed_milli); /* DIR changes at zero. */
+    ticks(&c,1); assert(!c.speed_milli); /* Allow DIR setup time. */
+    ticks(&c,1); assert(c.speed_milli && c.output_reverse);
     key(&c,K_F1); ticks(&c,100); assert(!c.run && !c.speed_milli);
     key(&c,K_F1); ticks(&c,1); assert(c.run && c.speed_milli); /* restart */
     key(&c,K_ESC); ticks(&c,100);
+    key(&c,K_RIGHT); ticks(&c,2); assert(!c.output_reverse && !c.speed_milli);
     frames(&c,1UL<<K_DOWN,3); assert(!c.jog);
     frames(&c,1UL<<K_DOWN,1); assert(c.jog);
     ticks(&c,1); assert(c.output_reverse && !c.speed_milli);
-    ticks(&c,1); assert(!c.speed_milli); ticks(&c,101); assert(c.speed_milli==480000);
-    frames(&c,0,1); assert(!c.jog); ticks(&c,100); assert(!c.speed_milli);
+    ticks(&c,1); assert(!c.speed_milli); ticks(&c,250); assert(c.speed_milli==1200000);
+    frames(&c,0,1); assert(!c.jog); ticks(&c,250); assert(!c.speed_milli);
     frames(&c,0,4); frames(&c,1UL<<K_UP,4); ticks(&c,50); assert(c.jog);
     frames(&c,(1UL<<K_UP)|(1UL<<K_DOWN),1); assert(c.locked && !c.jog && !c.run);
     frames(&c,1UL<<K_UP,10); assert(c.locked && !c.jog);
